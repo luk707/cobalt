@@ -21,6 +21,12 @@ You can now execute the targets.
 
 glb-info is a tiny utility for extracting and printing GLB file contents
 
+for more information on the glTF specification see the following references:
+
+[glTF 2.0.0 Specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.pdf)
+
+[glTF 2.0.0 Overview](https://raw.githubusercontent.com/KhronosGroup/glTF/refs/heads/main/specification/2.0/figures/gltfOverview-2.0.0d.png)
+
 #### Usage
 
 ```
