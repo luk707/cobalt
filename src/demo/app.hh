@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <set>
 
 class VulkanApp
 {
@@ -33,4 +34,7 @@ protected:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
     VkQueue graphicsQueue;
+    uint32_t graphicsQueueFamilyIndex;
+    VkQueue presentQueue;
+    uint32_t presentQueueFamilyIndex;
 };

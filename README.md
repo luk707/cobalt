@@ -17,6 +17,27 @@ You can now execute the targets.
 
 ## Targets
 
+### cobalt-demo
+
+You may need to export this on macos:
+
+```sh
+export VK_ICD_FILENAMES=/opt/homebrew/etc/vulkan/icd.d/MoltenVK_icd.json
+```
+
+also ensure that you have sdl2 and vulkan-tools, you can install with brew.
+
+the provided shaders are in the demo directory, and can be compiled as follows:
+
+```sh
+glslangValidator -V shader.vert -o vert.spv
+glslangValidator -V shader.frag -o frag.spv
+```
+
+the shaders must be available in the present working directory you run the binary from
+
+I recommend adding the build/bin directory to your path (at least during development)
+
 ### glb-info
 
 glb-info is a tiny utility for extracting and printing GLB file contents

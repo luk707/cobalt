@@ -87,32 +87,66 @@ void VulkanApp::createLogicalDevice()
     std::vector<VkQueueFamilyProperties> families(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, families.data());
 
-    uint32_t queueFamilyIndex = 0;
+    // Find graphics and present queue families
+    std::optional<uint32_t> graphicsIndex;
+    std::optional<uint32_t> presentIndex;
+
     for (uint32_t i = 0; i < queueFamilyCount; ++i)
     {
         if (families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-        {
-            queueFamilyIndex = i;
+            graphicsIndex = i;
+
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
+        if (presentSupport)
+            presentIndex = i;
+
+        if (graphicsIndex && presentIndex)
             break;
-        }
     }
 
-    float queuePriority = 1.0f;
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = queueFamilyIndex;
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    if (!graphicsIndex || !presentIndex)
+        throw std::runtime_error("Failed to find required queue families");
+
+    uint32_t uniqueQueueFamilies[] = {graphicsIndex.value(), presentIndex.value()};
+    std::set<uint32_t> uniqueFamilies(uniqueQueueFamilies, uniqueQueueFamilies + 2);
+
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    float priority = 1.0f;
+
+    for (uint32_t family : uniqueFamilies)
+    {
+        VkDeviceQueueCreateInfo queueInfo{};
+        queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueInfo.queueFamilyIndex = family;
+        queueInfo.queueCount = 1;
+        queueInfo.pQueuePriorities = &priority;
+        queueCreateInfos.push_back(queueInfo);
+    }
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.queueCreateInfoCount = 1;
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+    VkPhysicalDeviceFeatures deviceFeatures{};
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    const std::vector<const char *> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
     if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
         throw std::runtime_error("failed to create logical device!");
 
-    vkGetDeviceQueue(device, queueFamilyIndex, 0, &graphicsQueue);
+    vkGetDeviceQueue(device, graphicsIndex.value(), 0, &graphicsQueue);
+    vkGetDeviceQueue(device, presentIndex.value(), 0, &presentQueue);
+
+    // Store the indices for use later
+    graphicsQueueFamilyIndex = graphicsIndex.value();
+    presentQueueFamilyIndex = presentIndex.value();
 }
 
 std::vector<char> VulkanApp::readFile(const std::string &filename)
