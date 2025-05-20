@@ -12,7 +12,3 @@ FetchContent_MakeAvailable(CLI11)
 add_executable(glb-info main.cc)
 
 target_link_libraries(glb-info PRIVATE CLI11::CLI11 glb)
-
-set_target_properties(glb-info PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-)
